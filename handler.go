@@ -70,7 +70,7 @@ type Handler struct {
 	// information from authenticated users to a database for use in
 	// authorization. See the Profile type for more information. Defaults
 	// to a no-op.
-	WriteProfile func(*Profile) error
+	WriteProfile func(http.ResponseWriter, *Profile) error
 
 	// Log is an optional logger for debugging. Defaults to a no-op logger.
 	Log *log.Logger
@@ -106,7 +106,7 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// Now cookie is not present, procede with OAuth
 
 	origin := r.URL.String()
-	b, err := encryptBytes(h.StateKey, []byte(origin))
+	b, err := EncryptBytes(h.StateKey, []byte(origin))
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -139,7 +139,7 @@ func (h *Handler) HandleRedirect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 401)
 		return
 	}
-	b, err := decryptBytes(h.StateKey, rawState)
+	b, err := DecryptBytes(h.StateKey, rawState)
 	if err != nil {
 		http.Error(w, err.Error(), 401)
 		return
@@ -152,16 +152,16 @@ func (h *Handler) HandleRedirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	up, err := h.getUserInfo(tok)
+	up, err := h.GetUserInfo(tok)
 	if err != nil {
 		http.Error(w, "userinfo request error: "+err.Error(), 500)
 		return
 	}
 
 	up.ID = h.Service + "_" + up.Sub
-	h.writeProfile(up)
+	h.writeProfile(w, up)
 
-	h.setCookie(w, []byte(up.ID))
+	h.SetCookie(w, []byte(up.ID))
 	http.Redirect(w, r, home, 307)
 	// the user will be taken back to the page they originally tried to
 	// access. In the basic case this is whatever endpoint HandleLogin is

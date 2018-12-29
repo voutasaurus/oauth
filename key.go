@@ -14,7 +14,7 @@ func NewKey() (*[32]byte, error) {
 	return &k, nil
 }
 
-func encryptBytes(k *[32]byte, b []byte) ([]byte, error) {
+func EncryptBytes(k *[32]byte, b []byte) ([]byte, error) {
 	var nonce [24]byte
 	_, err := rand.Read(nonce[:])
 	if err != nil {
@@ -24,7 +24,7 @@ func encryptBytes(k *[32]byte, b []byte) ([]byte, error) {
 	return out, nil
 }
 
-func decryptBytes(key *[32]byte, b []byte) ([]byte, error) {
+func DecryptBytes(key *[32]byte, b []byte) ([]byte, error) {
 	if len(b) < 24 {
 		return nil, ErrInvalidCipher
 	}

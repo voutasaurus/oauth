@@ -22,7 +22,7 @@ func (h *Handler) cookieName() string {
 	return h.CookieName
 }
 
-func (h *Handler) setCookie(w http.ResponseWriter, in []byte) {
+func (h *Handler) SetCookie(w http.ResponseWriter, in []byte) {
 	dcheck := append([]byte(h.Domain), byte(' ')) // delimiter
 	tb := make([]byte, len(in)+8+len(dcheck))
 
@@ -36,7 +36,7 @@ func (h *Handler) setCookie(w http.ResponseWriter, in []byte) {
 	// Ensure user doesn't mess with the payload
 	copy(tb[8+len(dcheck):], in)
 
-	out, err := encryptBytes(h.CookieKey, tb)
+	out, err := EncryptBytes(h.CookieKey, tb)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -61,7 +61,7 @@ func (h *Handler) Cookie(r *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err := decryptBytes(h.CookieKey, in)
+	b, err := DecryptBytes(h.CookieKey, in)
 	if err != nil {
 		return nil, err
 	}

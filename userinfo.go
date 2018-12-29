@@ -8,11 +8,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func (h *Handler) writeProfile(p *Profile) error {
+func (h *Handler) writeProfile(w http.ResponseWriter, p *Profile) error {
 	if h.WriteProfile == nil {
 		return nil
 	}
-	return h.WriteProfile(p)
+	return h.WriteProfile(w, p)
 }
 
 type Profile struct {
@@ -29,7 +29,7 @@ type Profile struct {
 	Locale        string `json:"locale"`
 }
 
-func (h *Handler) getUserInfo(tok *oauth2.Token) (*Profile, error) {
+func (h *Handler) GetUserInfo(tok *oauth2.Token) (*Profile, error) {
 	// TODO: populate this URL from the Directory URL
 	req, err := http.NewRequest("GET", h.UserInfo, nil)
 	if err != nil {
