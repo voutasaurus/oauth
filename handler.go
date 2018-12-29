@@ -72,6 +72,10 @@ type Handler struct {
 	// to a no-op.
 	WriteProfile func(http.ResponseWriter, *Profile) error
 
+	// FinalizeLogin defaults to http.Redirect(w, r, "/", 307) and is
+	// called after the redirect is complete and cookie is issued.
+	FinalizeLogin http.HandlerFunc
+
 	// Log is an optional logger for debugging. Defaults to a no-op logger.
 	Log *log.Logger
 }
@@ -81,6 +85,14 @@ func (h *Handler) log() *log.Logger {
 		return h.Log
 	}
 	return log.New(ioutil.Discard, "", 0)
+}
+
+func (h *Handler) finalizeLogin(w http.ResponseWriter, r *http.Request) {
+	if h.FinalizeLogin != nil {
+		h.FinalizeLogin(w, r)
+		return
+	}
+	http.Redirect(w, r, "/", 307)
 }
 
 // HandleLogin will redirect the user to Google's consent page to ask for
@@ -94,7 +106,7 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		// If cookie is present and good, redirect to home as
 		// authentication is complete.
-		http.Redirect(w, r, "/", 307)
+		h.finalizeLogin(w, r)
 		return
 	}
 
