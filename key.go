@@ -14,13 +14,13 @@ func NewKey() (*[32]byte, error) {
 	return &k, nil
 }
 
-func EncryptBytes(k *[32]byte, b []byte) ([]byte, error) {
+func EncryptBytes(key *[32]byte, b []byte) ([]byte, error) {
 	var nonce [24]byte
 	_, err := rand.Read(nonce[:])
 	if err != nil {
 		return nil, err
 	}
-	out := secretbox.Seal(nonce[:], b, &nonce, k)
+	out := secretbox.Seal(nonce[:], b, &nonce, key)
 	return out, nil
 }
 
