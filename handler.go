@@ -76,6 +76,10 @@ type Handler struct {
 	// called after the redirect is complete and cookie is issued.
 	FinalizeLogin http.HandlerFunc
 
+	// ACL is an optional access control list function. Return an error if
+	// the user is not allowed. By default all users are allowed.
+	ACL func(*Profile) error
+
 	// Log is an optional logger for debugging. Defaults to a no-op logger.
 	Log *log.Logger
 }
@@ -167,6 +171,11 @@ func (h *Handler) HandleRedirect(w http.ResponseWriter, r *http.Request) {
 	up, err := h.GetUserInfo(tok)
 	if err != nil {
 		http.Error(w, "userinfo request error: "+err.Error(), 500)
+		return
+	}
+
+	if err != h.acl(up) {
+		http.Error(w, "ACL error: "+err.Error(), 500)
 		return
 	}
 
